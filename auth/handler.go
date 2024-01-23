@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"gopkg.in/validator.v2"
 )
 
@@ -13,6 +13,10 @@ type Response struct {
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
+
+var (
+	registerUserService = registerUser
+)
 
 func Router() *chi.Mux {
 	r := chi.NewMux()
@@ -34,8 +38,8 @@ func mapError(err error) (res Response, httpStatus int) {
 		Message: err.Error(),
 	}
 	switch err {
-	// case ErrParseInput, ErrTitleMissing, ErrSkuMissing, ErrPriceMissing, ErrRatingMissing, ErrRatingInvalid:
-	// 	httpStatus = http.StatusBadRequest
+	case ErrParseInput, ErrInvalidInput:
+		httpStatus = http.StatusBadRequest
 	// case ErrNotFound:
 	// 	httpStatus = http.StatusNotFound
 	// case ErrNoRows, ErrSkuDuplicate:
@@ -62,11 +66,11 @@ func registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validator.Validate(regParams); err != nil {
-		writeError(w, err)
+		writeError(w, ErrInvalidInput)
 		return
 	}
 
-	if err := registerUser(r.Context(), regParams); err != nil {
+	if err := registerUserService(r.Context(), regParams); err != nil {
 		writeError(w, err)
 		return
 	}

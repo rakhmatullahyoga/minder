@@ -6,8 +6,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var (
+	userEmailExistedRepo = isUserEmailExisted
+	createUserRepo       = createUser
+)
+
 func registerUser(ctx context.Context, in Registration) (err error) {
-	existed, err := isUserEmailExisted(ctx, in.Email)
+	existed, err := userEmailExistedRepo(ctx, in.Email)
 	if err != nil {
 		return
 	}
@@ -17,7 +22,7 @@ func registerUser(ctx context.Context, in Registration) (err error) {
 	}
 
 	hashPassword(&in)
-	err = createUser(ctx, in)
+	err = createUserRepo(ctx, in)
 	return
 }
 

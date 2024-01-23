@@ -13,8 +13,9 @@ var (
 
 const (
 	// queries
-	checkUserEmailExists = "SELECT EXISTS (SELECT email FROM users WHERE email = ?)"
-	insertUserQuery      = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
+	checkUserEmailExistsQuery = "SELECT EXISTS (SELECT email FROM users WHERE email = ?)"
+	getUserByEmailQuery       = "SELECT id, name, email, password, verified FROM users WHERE email = ?"
+	insertUserQuery           = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
 
 	// others
 	duplicateDbConstraint = "Duplicate entry"
@@ -41,6 +42,6 @@ func createUser(ctx context.Context, in Registration) (err error) {
 }
 
 func isUserEmailExisted(ctx context.Context, email string) (existed bool, err error) {
-	err = db.QueryRowContext(ctx, checkUserEmailExists, email).Scan(&existed)
+	err = db.QueryRowContext(ctx, checkUserEmailExistsQuery, email).Scan(&existed)
 	return
 }
