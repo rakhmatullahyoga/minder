@@ -1,0 +1,23 @@
+# for development purpose only
+version: '3'
+services:
+  mysql:
+    container_name: minder_mysql
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=minder
+    volumes:
+      - mysqldata:/var/lib/mysql
+    ports:
+      - ${MYSQL_PORT}:3306
+  redis:
+    container_name: minder_redis
+    image: redis:alpine
+    volumes:
+      - redisdata:/data
+    ports:
+      - ${REDIS_PORT}:6379
+volumes:
+  mysqldata:
+  redisdata:
