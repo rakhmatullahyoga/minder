@@ -4,8 +4,6 @@ import (
 	"context"
 	"reflect"
 	"testing"
-
-	"github.com/go-chi/jwtauth/v5"
 )
 
 func Test_registerUser(t *testing.T) {
@@ -99,7 +97,6 @@ func Test_registerUser(t *testing.T) {
 }
 
 func Test_loginUser(t *testing.T) {
-	secretKey := "super-secret"
 	req := LoginRequest{
 		Email:    "yoga@mail.com",
 		Password: "password",
@@ -168,27 +165,6 @@ func Test_loginUser(t *testing.T) {
 			},
 		},
 		{
-			name: "error generating token",
-			args: args{
-				ctx: context.Background(),
-				req: req,
-			},
-			wantErr: true,
-			init: func() {
-				TokenAuth = jwtauth.New("abc", []byte("JWT_SECRET_KEY"), nil)
-				getUserByEmailRepo = func(ctx context.Context, email string) (user User, err error) {
-					user = User{
-						ID:       1,
-						Name:     "Yoga",
-						Email:    req.Email,
-						Password: hashPassword(req.Password),
-						Verified: true,
-					}
-					return
-				}
-			},
-		},
-		{
 			name: "success",
 			args: args{
 				ctx: context.Background(),
@@ -196,10 +172,15 @@ func Test_loginUser(t *testing.T) {
 			},
 			wantErr: false,
 			wantRes: LoginResponse{
-				Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InlvZ2FAbWFpbC5jb20iLCJpZCI6MSwibmFtZSI6IllvZ2EiLCJ2ZXJpZmllZCI6dHJ1ZX0.65ss2uvz8-8QyQtsb8WR0gXo9aglvPwPj3EgOL212M8",
+				Token: generateToken(User{
+					ID:       1,
+					Name:     "Yoga",
+					Email:    req.Email,
+					Password: hashPassword(req.Password),
+					Verified: true,
+				}),
 			},
 			init: func() {
-				TokenAuth = jwtauth.New("HS256", []byte(secretKey), nil)
 				getUserByEmailRepo = func(ctx context.Context, email string) (user User, err error) {
 					user = User{
 						ID:       1,

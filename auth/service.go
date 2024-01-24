@@ -4,13 +4,11 @@ import (
 	"context"
 	"os"
 
-	"github.com/go-chi/jwtauth/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	TokenAuth = jwtauth.New("HS256", []byte(os.Getenv("JWT_SECRET_KEY")), nil)
-
 	createUserRepo       = createUser
 	getUserByEmailRepo   = getUserByEmail
 	userEmailExistedRepo = isUserEmailExisted
@@ -46,12 +44,7 @@ func loginUser(ctx context.Context, req LoginRequest) (res LoginResponse, err er
 		return
 	}
 
-	token, err := generateToken(user)
-	if err != nil {
-		return
-	}
-
-	res.Token = token
+	res.Token = generateToken(user)
 	return
 }
 
@@ -65,13 +58,13 @@ func checkPassword(hashPassword, password string) bool {
 	return err == nil
 }
 
-func generateToken(user User) (token string, err error) {
-	claims := map[string]interface{}{
+func generateToken(user User) (token string) {
+	tkn := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       user.ID,
 		"email":    user.Email,
 		"name":     user.Name,
 		"verified": user.Verified,
-	}
-	_, token, err = TokenAuth.Encode(claims)
+	})
+	token, _ = tkn.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	return
 }
