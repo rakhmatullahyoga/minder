@@ -1,11 +1,20 @@
+UNAME := $(shell uname)
+
+# Default mysql migration settings
+export MYSQL_USERNAME ?= root
+export MYSQL_PASSWORD ?= rootpw
+export MYSQL_HOST     ?= localhost
+export MYSQL_PORT     ?= 3306
+export MYSQL_DATABASE ?= minder
+
 tidy:
 	go mod tidy
 
 clean:
-	rm -f goodies
+	rm -f minder
 
 compile: clean
-	go build -o goodies main.go
+	go build -o minder main.go
 
 env:
 	cp env.sample .env
@@ -14,7 +23,10 @@ bin:
 	@mkdir -p bin
 
 bin/golangci-lint: bin
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.43.0
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.55.2
+
+lint: bin/golangci-lint
+	./bin/golangci-lint run -v
 
 bin/migrate: bin
 ifeq ($(UNAME), Linux)
@@ -28,3 +40,14 @@ endif
 else
 	@echo "Your OS is not supported."
 endif
+
+# If the first argument is "migrate"...
+ifeq (migrate,$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "migrate"
+  MIGRATE_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(MIGRATE_ARGS):;@:)
+endif
+
+migrate: bin/migrate
+	./bin/migrate -source file://db/migrations -database "mysql://$(MYSQL_USERNAME):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DATABASE)" $(MIGRATE_ARGS)

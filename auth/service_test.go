@@ -175,7 +175,7 @@ func Test_loginUser(t *testing.T) {
 			},
 			wantErr: true,
 			init: func() {
-				tokenAuth = jwtauth.New("abc", []byte("JWT_SECRET_KEY"), nil)
+				TokenAuth = jwtauth.New("abc", []byte("JWT_SECRET_KEY"), nil)
 				getUserByEmailRepo = func(ctx context.Context, email string) (user User, err error) {
 					user = User{
 						ID:       1,
@@ -199,7 +199,7 @@ func Test_loginUser(t *testing.T) {
 				Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InlvZ2FAbWFpbC5jb20iLCJpZCI6MSwibmFtZSI6IllvZ2EiLCJ2ZXJpZmllZCI6dHJ1ZX0.65ss2uvz8-8QyQtsb8WR0gXo9aglvPwPj3EgOL212M8",
 			},
 			init: func() {
-				tokenAuth = jwtauth.New("HS256", []byte(secretKey), nil)
+				TokenAuth = jwtauth.New("HS256", []byte(secretKey), nil)
 				getUserByEmailRepo = func(ctx context.Context, email string) (user User, err error) {
 					user = User{
 						ID:       1,

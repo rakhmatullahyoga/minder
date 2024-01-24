@@ -1,0 +1,5 @@
+bin/*
+.env
+cover.html
+coverage.out
+minder

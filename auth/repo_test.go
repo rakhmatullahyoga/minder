@@ -97,7 +97,7 @@ func Test_createUser(t *testing.T) {
 	mockDb, mockQuery, _ := sqlmock.New()
 	defer mockDb.Close()
 	testDb := sqlx.NewDb(mockDb, "sqlmock")
-	SetDB(testDb)
+	_ = SetDB(testDb)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.init(mockQuery)
@@ -172,7 +172,7 @@ func Test_isUserEmailExisted(t *testing.T) {
 	mockDb, mockQuery, _ := sqlmock.New()
 	defer mockDb.Close()
 	testDb := sqlx.NewDb(mockDb, "sqlmock")
-	SetDB(testDb)
+	_ = SetDB(testDb)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.init(mockQuery)
@@ -254,7 +254,7 @@ func Test_getUserByEmail(t *testing.T) {
 	mockDb, mockQuery, _ := sqlmock.New()
 	defer mockDb.Close()
 	testDb := sqlx.NewDb(mockDb, "sqlmock")
-	SetDB(testDb)
+	_ = SetDB(testDb)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.init(mockQuery)

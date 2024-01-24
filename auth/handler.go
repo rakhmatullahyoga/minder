@@ -31,7 +31,7 @@ func Router() *chi.Mux {
 func writeResponse(w http.ResponseWriter, res Response, status int) {
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(res)
+	_ = json.NewEncoder(w).Encode(res)
 }
 
 func mapError(err error) (res Response, httpStatus int) {

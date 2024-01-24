@@ -111,7 +111,7 @@ func Test_registerUserHandler(t *testing.T) {
 
 			data, _ := io.ReadAll(res.Body)
 			resp := Response{}
-			json.Unmarshal(data, &resp)
+			_ = json.Unmarshal(data, &resp)
 			if resp != tt.responseBody {
 				t.Errorf("wrong http response body got: %v, want: %v", resp, tt.responseBody)
 			}

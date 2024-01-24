@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	tokenAuth = jwtauth.New("HS256", []byte(os.Getenv("JWT_SECRET_KEY")), nil)
+	TokenAuth = jwtauth.New("HS256", []byte(os.Getenv("JWT_SECRET_KEY")), nil)
 
 	createUserRepo       = createUser
 	getUserByEmailRepo   = getUserByEmail
@@ -72,6 +72,6 @@ func generateToken(user User) (token string, err error) {
 		"name":     user.Name,
 		"verified": user.Verified,
 	}
-	_, token, err = tokenAuth.Encode(claims)
+	_, token, err = TokenAuth.Encode(claims)
 	return
 }
