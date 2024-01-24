@@ -9,7 +9,32 @@ Minder is an application for match-making and dating purpose. This microservice 
 - [golang-migrate](https://github.com/golang-migrate/migrate)
 - [golangci-lint](https://github.com/golangci/golangci-lint)
 
-## Usage
+## Project structure
+
+```
+root
+|- auth # go package for register, login, and authorization of the service
+|  |- error.go # errors definition
+|  |- handler.go # http handler
+|  |- model.go # data structure definition
+|  |- repo.go # data repository functions
+|  |- service.go # business logic
+|- bin # additional tools such as db migrate, linter
+|- candidate # go package for minder's core business process such as get candidate, swipe and subscription
+|  |- error.go # errors definition
+|  |- handler.go # http handler
+|  |- model.go # data structure definition
+|  |- repo.go # data repository functions
+|  |- service.go # business logic
+|- db # db related scripts
+|  |- migrations # migration sql files
+|     |- x.down.sql
+|     |- x.up.sql
+|- docker-compose.yml # system dependencies: database, cache
+|- main.go # application entrypoint
+```
+
+## How to run
 1. Clone this repository
 ```bash
 git clone git@github.com:rakhmatullahyoga/minder.git
@@ -23,11 +48,20 @@ docker-compose up -d
 ```bash
 make env
 ```
-5. Compile the project
+5. Run unit test
+```bash
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out -o cover.html
+```
+6. Run linter
+```bash
+make lint
+```
+7. Compile the project
 ```bash
 make compile
 ```
-6. Run the application
+8. Run the application
 ```bash
 ./minder
 ```
