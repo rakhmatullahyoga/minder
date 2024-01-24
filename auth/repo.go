@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"database/sql"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -43,5 +44,15 @@ func createUser(ctx context.Context, in Registration) (err error) {
 
 func isUserEmailExisted(ctx context.Context, email string) (existed bool, err error) {
 	err = db.QueryRowContext(ctx, checkUserEmailExistsQuery, email).Scan(&existed)
+	return
+}
+
+func getUserByEmail(ctx context.Context, email string) (user User, err error) {
+	err = db.GetContext(ctx, &user, getUserByEmailQuery, email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = ErrUserNotFound
+		}
+	}
 	return
 }

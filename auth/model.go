@@ -6,9 +6,13 @@ type Registration struct {
 	Password string `json:"password" validate:"nonzero"`
 }
 
-type Login struct {
+type LoginRequest struct {
 	Email    string `json:"email" validate:"nonzero"`
 	Password string `json:"password" validate:"nonzero"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
 }
 
 type User struct {

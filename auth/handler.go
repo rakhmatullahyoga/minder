@@ -15,6 +15,7 @@ type Response struct {
 }
 
 var (
+	loginService        = loginUser
 	registerUserService = registerUser
 )
 
@@ -40,10 +41,8 @@ func mapError(err error) (res Response, httpStatus int) {
 	switch err {
 	case ErrParseInput, ErrInvalidInput:
 		httpStatus = http.StatusBadRequest
-	// case ErrNotFound:
-	// 	httpStatus = http.StatusNotFound
-	// case ErrNoRows, ErrSkuDuplicate:
-	// 	httpStatus = http.StatusUnprocessableEntity
+	case ErrIncorrectCredentials:
+		httpStatus = http.StatusUnauthorized
 	case ErrUserAlreadyRegistered:
 		httpStatus = http.StatusConflict
 	default:
@@ -59,18 +58,18 @@ func writeError(w http.ResponseWriter, err error) {
 }
 
 func registerUserHandler(w http.ResponseWriter, r *http.Request) {
-	var regParams Registration
-	if err := json.NewDecoder(r.Body).Decode(&regParams); err != nil {
+	var params Registration
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		writeError(w, ErrParseInput)
 		return
 	}
 
-	if err := validator.Validate(regParams); err != nil {
+	if err := validator.Validate(params); err != nil {
 		writeError(w, ErrInvalidInput)
 		return
 	}
 
-	if err := registerUserService(r.Context(), regParams); err != nil {
+	if err := registerUserService(r.Context(), params); err != nil {
 		writeError(w, err)
 		return
 	}
@@ -78,4 +77,23 @@ func registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	writeResponse(w, Response{Message: "user successfully registered"}, http.StatusCreated)
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {}
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	var params LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		writeError(w, ErrParseInput)
+		return
+	}
+
+	if err := validator.Validate(params); err != nil {
+		writeError(w, ErrInvalidInput)
+		return
+	}
+
+	res, err := loginService(r.Context(), params)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	writeResponse(w, Response{Data: res}, http.StatusOK)
+}

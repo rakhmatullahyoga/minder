@@ -8,7 +8,9 @@ var (
 	ErrInvalidInput = errors.New("invalid parameter")
 
 	// service errors
+	ErrUserNotFound          = errors.New("user not found")
 	ErrUserAlreadyRegistered = errors.New("user already registered")
+	ErrIncorrectCredentials  = errors.New("wrong email or password")
 
 	// app error
 	ErrEmptyDB = errors.New("cannot assign with empty db")
