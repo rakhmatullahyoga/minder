@@ -4,10 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
+)
+
+const (
+	cachePrefix = "candidate:"
 )
 
 var (
@@ -57,5 +62,18 @@ func getCandidateQuery(excludedIDs []int) (query string) {
 		query += fmt.Sprintf(" WHERE id NOT IN (%s)", strings.Join(strIDs, ","))
 	}
 	query += " ORDER BY created_at DESC LIMIT 1"
+	return
+}
+
+func getCachedCandidateIDs(ctx context.Context) (ids []int, err error) {
+	userID := ctx.Value("user_id").(string)
+	idsStr, err := cache.LRange(ctx, cachePrefix+userID, 0, -1).Result()
+	if err != nil {
+		return
+	}
+	for _, v := range idsStr {
+		id, _ := strconv.Atoi(v)
+		ids = append(ids, id)
+	}
 	return
 }
