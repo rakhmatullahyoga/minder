@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"gopkg.in/validator.v2"
 )
 
@@ -22,7 +21,6 @@ var (
 func Router() *chi.Mux {
 	r := chi.NewMux()
 
-	r.Use(middleware.SetHeader("Content-Type", "application/json"))
 	r.Post("/register", registerUserHandler)
 	r.Post("/login", loginHandler)
 	return r
@@ -41,7 +39,7 @@ func mapError(err error) (res Response, httpStatus int) {
 	switch err {
 	case ErrParseInput, ErrInvalidInput:
 		httpStatus = http.StatusBadRequest
-	case ErrIncorrectCredentials:
+	case ErrIncorrectCredentials, ErrUnauthorizedRequest:
 		httpStatus = http.StatusUnauthorized
 	case ErrUserAlreadyRegistered:
 		httpStatus = http.StatusConflict

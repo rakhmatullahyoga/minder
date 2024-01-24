@@ -81,7 +81,7 @@ func TestSetCache(t *testing.T) {
 func Test_getCandidate(t *testing.T) {
 	type args struct {
 		ctx         context.Context
-		excludedIDs []int
+		excludedIDs []uint64
 	}
 	tests := []struct {
 		name       string
@@ -134,7 +134,7 @@ func Test_getCandidate(t *testing.T) {
 			name: "success with exclusion",
 			args: args{
 				ctx:         context.Background(),
-				excludedIDs: []int{2, 4},
+				excludedIDs: []uint64{2, 4},
 			},
 			wantErr: false,
 			wantUser: User{

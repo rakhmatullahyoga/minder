@@ -10,10 +10,12 @@ import (
 	"syscall"
 
 	"minder/auth"
+	"minder/candidate"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
@@ -34,13 +36,29 @@ func main() {
 	}
 
 	if err = auth.SetDB(db); err != nil {
-		log.Fatalf("cannot set dependency for auth: %s", err.Error())
+		log.Fatalf("cannot set database for auth: %s", err.Error())
+		return
+	}
+
+	if err = candidate.SetDB(db); err != nil {
+		log.Fatalf("cannot set database for candidate: %s", err.Error())
+		return
+	}
+
+	cache := redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
+	})
+
+	if err = candidate.SetCache(cache); err != nil {
+		log.Fatalf("cannot set cache for candidate: %s", err.Error())
 		return
 	}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(middleware.SetHeader("Content-Type", "application/json"))
 	r.Mount("/auth", auth.Router())
+	r.With(auth.ValidateJWT).Mount("/candidate", candidate.Router())
 
 	srvPort := os.Getenv("SERVER_PORT")
 
