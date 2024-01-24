@@ -65,5 +65,3 @@ make compile
 ```bash
 ./minder
 ```
-## Test the application
-You can now test the application by making http request to minder service as described in the attached [Postman collection](minder.postman_collection.json)
