@@ -85,13 +85,6 @@ func swipeCandidate(ctx context.Context, candidateID uint64, liked bool) (nextCa
 		return
 	}
 
-	if liked {
-		err = insertUserInterestRepo(ctx, candidateID)
-		if err != nil {
-			return
-		}
-	}
-
 	if candidateID != cachedIDs[len(cachedIDs)-1] {
 		err = cacheCandidateIDRepo(ctx, candidateID)
 		if err != nil {
@@ -104,11 +97,18 @@ func swipeCandidate(ctx context.Context, candidateID uint64, liked bool) (nextCa
 		userID := ctx.Value(auth.ClaimsKeyUserID).(float64)
 		excludedIDs := append(cachedIDs, likedIDs...)
 		nextCandidate, err = getCandidateRepo(ctx, append(excludedIDs, uint64(userID)))
+		if err != nil {
+			return
+		}
 		_ = cacheCandidateIDRepo(ctx, nextCandidate.ID)
 	} else {
 		err = ErrExceedQuota
+		return
 	}
 
+	if liked {
+		err = insertUserInterestRepo(ctx, candidateID)
+	}
 	return
 }
 

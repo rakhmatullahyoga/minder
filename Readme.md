@@ -16,6 +16,7 @@ root
 |- auth # go package for register, login, and authorization of the service
 |  |- error.go # errors definition
 |  |- handler.go # http handler
+|  |- middleware.go # http middleware for core business process APIs
 |  |- model.go # data structure definition
 |  |- repo.go # data repository functions
 |  |- service.go # business logic
@@ -65,3 +66,6 @@ make compile
 ```bash
 ./minder
 ```
+
+## Test the application
+You can now test the application by making http request to minder service as described in the attached [Postman collection](minder.postman_collection.json)
