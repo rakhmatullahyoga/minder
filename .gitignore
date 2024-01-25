@@ -3,3 +3,4 @@ bin/*
 cover.html
 coverage.out
 minder
+__debug_bin

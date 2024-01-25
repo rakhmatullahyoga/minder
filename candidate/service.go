@@ -1,6 +1,10 @@
 package candidate
 
-import "context"
+import (
+	"context"
+
+	"minder/auth"
+)
 
 const (
 	dailyQuota = 10
@@ -12,7 +16,6 @@ var (
 	getUserInterestedCandidatesRepo = getUserInterestedCandidates
 	getCandidateRepo                = getCandidate
 	getCachedCandidateIDsRepo       = getCachedCandidateIDs
-	checkUserInterestRepo           = checkUserInterest
 	insertUserInterestRepo          = insertUserInterest
 	cacheCandidateIDRepo            = cacheCandidateID
 	updateUserRepo                  = updateUser
@@ -27,45 +30,56 @@ func getCandidateFeed(ctx context.Context) (candidate User, err error) {
 	if candidateID > 0 {
 		candidate, err = getUserByIDRepo(ctx, candidateID)
 	} else {
-		var candidates []User
-		var excludedIDs []uint64
-		candidates, err = getUserInterestedCandidatesRepo(ctx)
+		var likedCandidates []User
+		var likedIDs []uint64
+		likedCandidates, err = getUserInterestedCandidatesRepo(ctx)
 		if err != nil {
 			return
 		}
 
-		for _, c := range candidates {
-			excludedIDs = append(excludedIDs, c.ID)
+		for _, c := range likedCandidates {
+			likedIDs = append(likedIDs, c.ID)
 		}
-		userID := ctx.Value("user_id").(uint64)
-		candidate, err = getCandidateRepo(ctx, append(excludedIDs, userID))
+		userID := ctx.Value(auth.ClaimsKeyUserID).(float64)
+		candidate, err = getCandidateRepo(ctx, append(likedIDs, uint64(userID)))
+		_ = cacheCandidateIDRepo(ctx, candidate.ID)
 	}
 	return
 }
 
 func swipeCandidate(ctx context.Context, candidateID uint64, liked bool) (nextCandidate User, err error) {
-	ids, err := getCachedCandidateIDsRepo(ctx)
+	cachedIDs, err := getCachedCandidateIDsRepo(ctx)
 	if err != nil {
 		return
 	}
 
-	verified := ctx.Value("verified").(bool)
-	if !verified && len(ids) >= dailyQuota {
+	verified := ctx.Value(auth.ClaimsKeyVerified).(bool)
+	if !verified && len(cachedIDs) >= dailyQuota && candidateID != cachedIDs[len(cachedIDs)-1] {
 		err = ErrExceedQuota
 		return
 	}
 
-	for _, v := range ids {
-		if v == candidateID {
+	for i, v := range cachedIDs {
+		if v == candidateID && i < len(cachedIDs)-1 {
 			err = ErrAlreadySwiped
 			return
 		}
 	}
 
-	alreadyLiked, err := checkUserInterestRepo(ctx, candidateID)
+	likedIDs := []uint64{}
+	alreadyLiked := false
+	likedCandidates, err := getUserInterestedCandidatesRepo(ctx)
 	if err != nil {
 		return
 	}
+
+	for _, c := range likedCandidates {
+		likedIDs = append(likedIDs, c.ID)
+		if c.ID == candidateID {
+			alreadyLiked = true
+		}
+	}
+
 	if alreadyLiked {
 		err = ErrAlreadySwiped
 		return
@@ -78,14 +92,19 @@ func swipeCandidate(ctx context.Context, candidateID uint64, liked bool) (nextCa
 		}
 	}
 
-	err = cacheCandidateIDRepo(ctx, candidateID)
-	if err != nil {
-		return
+	if candidateID != cachedIDs[len(cachedIDs)-1] {
+		err = cacheCandidateIDRepo(ctx, candidateID)
+		if err != nil {
+			return
+		}
+		cachedIDs = append(cachedIDs, candidateID)
 	}
 
-	if verified || len(ids)+1 < dailyQuota {
-		userID := ctx.Value("user_id").(uint64)
-		nextCandidate, err = getCandidateRepo(ctx, append(ids, candidateID, userID))
+	if verified || len(cachedIDs) < dailyQuota {
+		userID := ctx.Value(auth.ClaimsKeyUserID).(float64)
+		excludedIDs := append(cachedIDs, likedIDs...)
+		nextCandidate, err = getCandidateRepo(ctx, append(excludedIDs, uint64(userID)))
+		_ = cacheCandidateIDRepo(ctx, nextCandidate.ID)
 	} else {
 		err = ErrExceedQuota
 	}
@@ -94,8 +113,8 @@ func swipeCandidate(ctx context.Context, candidateID uint64, liked bool) (nextCa
 }
 
 func subscribePremium(ctx context.Context) (err error) {
-	userID := ctx.Value("user_id").(uint64)
-	user, err := getUserByIDRepo(ctx, userID)
+	userID := ctx.Value(auth.ClaimsKeyUserID).(float64)
+	user, err := getUserByIDRepo(ctx, uint64(userID))
 	if err != nil {
 		return
 	}
@@ -111,6 +130,6 @@ func subscribePremium(ctx context.Context) (err error) {
 }
 
 func getUserInterest(ctx context.Context) (candidates []User, err error) {
-	candidates, err = getUserInterestedCandidates(ctx)
+	candidates, err = getUserInterestedCandidatesRepo(ctx)
 	return
 }

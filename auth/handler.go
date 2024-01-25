@@ -20,7 +20,6 @@ var (
 
 func Router() *chi.Mux {
 	r := chi.NewMux()
-
 	r.Post("/register", registerUserHandler)
 	r.Post("/login", loginHandler)
 	return r

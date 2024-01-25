@@ -21,8 +21,7 @@ var (
 )
 
 func Router() *chi.Mux {
-	r := chi.NewMux()
-
+	r := chi.NewRouter()
 	r.Get("/feed", getFeedHandler)
 	r.Post("/swipe", swipeHandler)
 	r.Post("/subscribe", subscribeHandler)
